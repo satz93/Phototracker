@@ -27,21 +27,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.phototracker.app.data.PhotoRepository
+import com.phototracker.app.ui.theme.CheckerBase
+import com.phototracker.app.ui.theme.CheckerLine
 import com.phototracker.app.ui.theme.HandwriteBlue
 import com.phototracker.app.ui.theme.HighlightYellow
 import com.phototracker.app.ui.theme.InkFaded
@@ -84,7 +87,7 @@ fun DayDetailScreen(day: Int, onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .checkerBackground(),
     ) {
         IconButton(
             onClick = onBack,
@@ -98,9 +101,9 @@ fun DayDetailScreen(day: Int, onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(horizontal = 40.dp),
+                .padding(horizontal = 42.dp),
         ) {
-            StampCard(
+            PolaroidCard(
                 day = day,
                 hasPhoto = hasPhoto,
                 capturedAt = capturedAt,
@@ -111,34 +114,49 @@ fun DayDetailScreen(day: Int, onBack: () -> Unit) {
     }
 }
 
+private fun Modifier.checkerBackground(
+    cellSize: Dp = 25.dp,
+    lineColor: Color = CheckerLine,
+    baseColor: Color = CheckerBase,
+): Modifier = this
+    .background(baseColor)
+    .drawBehind {
+        val cellPx = cellSize.toPx()
+        var x = 0f
+        while (x <= size.width) {
+            drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+            x += cellPx
+        }
+        var y = 0f
+        while (y <= size.height) {
+            drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+            y += cellPx
+        }
+    }
+
 @Composable
-private fun StampCard(
+private fun PolaroidCard(
     day: Int,
     hasPhoto: Boolean,
     capturedAt: Long?,
     photoPainter: Painter?,
     onTap: () -> Unit,
 ) {
-    val rotation = remember(day) { (day * 17 % 7 - 3).toFloat() }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .rotate(rotation)
-            .clickable(onClick = onTap),
+            .aspectRatio(0.785f)
+            .shadow(8.dp, RoundedCornerShape(3.dp))
+            .background(Color.White, RoundedCornerShape(3.dp))
+            .clickable(onClick = onTap)
+            .padding(10.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.85f)
-                .shadow(10.dp, RoundedCornerShape(6.dp))
-                .background(Color.White, RoundedCornerShape(6.dp))
-                .padding(14.dp),
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(2.dp)),
+                    .fillMaxWidth()
+                    .weight(0.78f)
+                    .clip(RoundedCornerShape(1.dp)),
             ) {
                 if (hasPhoto && photoPainter != null) {
                     Image(
@@ -151,9 +169,7 @@ private fun StampCard(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(
-                                Brush.radialGradient(listOf(PlaceholderMoss, Color(0xFFEFE9DD))),
-                            ),
+                            .background(PlaceholderMoss),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -171,7 +187,7 @@ private fun StampCard(
                     fontSize = 11.sp,
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(10.dp),
+                        .padding(8.dp),
                 )
 
                 if (hasPhoto && capturedAt != null) {
@@ -181,27 +197,35 @@ private fun StampCard(
                         fontSize = 11.sp,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(10.dp),
+                            .padding(8.dp),
                     )
                 }
             }
-        }
 
-        Box(modifier = Modifier.padding(start = 16.dp, top = 10.dp)) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(bottom = 4.dp)
-                    .size(width = 62.dp, height = 8.dp)
-                    .background(HighlightYellow.copy(alpha = 0.7f)),
-            )
-            Text(
-                text = "Day $day",
-                color = HandwriteBlue,
-                fontSize = 26.sp,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Bold,
-            )
+                    .fillMaxWidth()
+                    .weight(0.22f)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .padding(bottom = 2.dp)
+                            .size(width = 60.dp, height = 8.dp)
+                            .align(Alignment.BottomStart)
+                            .background(HighlightYellow.copy(alpha = 0.7f)),
+                    )
+                    Text(
+                        text = "Day $day",
+                        color = HandwriteBlue,
+                        fontSize = 24.sp,
+                        fontStyle = FontStyle.Italic,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
         }
     }
 }
