@@ -7,18 +7,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.phototracker.app.ui.detail.DayDetailScreen
-import com.phototracker.app.ui.grid.GridScreen
+import com.phototracker.app.ui.home.HomeScreen
 
-private const val ROUTE_GRID = "grid"
+private const val ROUTE_HOME = "home"
 private const val ROUTE_DAY = "day/{day}"
 
 @Composable
 fun PhotoTrackerApp() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = ROUTE_GRID) {
-        composable(ROUTE_GRID) {
-            GridScreen(onDayClick = { day -> navController.navigate("day/$day") })
+    NavHost(navController = navController, startDestination = ROUTE_HOME) {
+        composable(ROUTE_HOME) {
+            HomeScreen(onDayClick = { day -> navController.navigate("day/$day") })
         }
         composable(
             route = ROUTE_DAY,
