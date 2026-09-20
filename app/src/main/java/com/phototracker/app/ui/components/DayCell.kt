@@ -30,7 +30,13 @@ import java.io.File
 
 private val CellShape = RoundedCornerShape(8.dp)
 
-/** A single 42x42dp tracker-day cell, matching the Figma home-page spec. */
+/**
+ * A single 42x42dp tracker-day cell, matching the Figma home-page spec.
+ *
+ * [day] is the tracker day (1..goalDays), used to look up/save its photo. [label] is what
+ * number is actually shown — usually the same as [day], but the calendar view shows the
+ * real day-of-month instead. [isToday] draws a black outline instead of the default grey one.
+ */
 @Composable
 fun DayCell(
     day: Int,
@@ -38,15 +44,18 @@ fun DayCell(
     photoFile: File,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    label: Int = day,
+    isToday: Boolean = false,
 ) {
     val context = LocalContext.current
+    val borderStroke = if (isToday) BorderStroke(2.dp, Color.Black) else BorderStroke(1.dp, ChipBorder)
 
     Box(
         modifier = modifier
             .size(42.dp)
             .clip(CellShape)
             .background(Color.White)
-            .border(BorderStroke(1.dp, ChipBorder), CellShape)
+            .border(borderStroke, CellShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -65,7 +74,7 @@ fun DayCell(
             )
         } else {
             Text(
-                text = day.toString(),
+                text = label.toString(),
                 color = InkText,
                 fontFamily = IBMPlexMono,
                 fontWeight = FontWeight.Normal,

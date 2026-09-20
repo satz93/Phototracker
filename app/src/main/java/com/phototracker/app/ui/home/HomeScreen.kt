@@ -8,18 +8,30 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,15 +50,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.phototracker.app.data.GOAL_DAY_OPTIONS
 import com.phototracker.app.data.PhotoRepository
-import com.phototracker.app.data.TOTAL_DAYS
 import com.phototracker.app.ui.calendar.CalendarContent
 import com.phototracker.app.ui.grid.DaysGridContent
 import com.phototracker.app.ui.theme.ChipBorder
 import com.phototracker.app.ui.theme.IBMPlexMono
 import com.phototracker.app.ui.theme.IBMPlexSans
+import com.phototracker.app.ui.theme.InkFaded
 import com.phototracker.app.ui.theme.InkText
 import com.phototracker.app.ui.theme.Parchment
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private enum class HomeTab { Calendar, Days }
 
@@ -57,11 +73,15 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
     var refreshTick by remember { mutableIntStateOf(0) }
     var selectedTab by remember { mutableStateOf(HomeTab.Days) }
     var showInfo by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
+    var showStartOver by remember { mutableStateOf(false) }
 
     LifecycleResumeEffect(Unit) {
         refreshTick++
         onPauseOrDispose { }
     }
+
+    val goalDays = remember(refreshTick) { repository.goalDays() }
 
     Box(
         modifier = Modifier
@@ -79,13 +99,16 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "90 day transformation",
+                    text = "$goalDays day transformation",
                     color = InkText,
                     fontFamily = IBMPlexSans,
                     fontWeight = FontWeight.Medium,
                     fontSize = 18.sp,
                     modifier = Modifier.weight(1f),
                 )
+                IconButton(onClick = { showSettings = true }) {
+                    Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = InkText)
+                }
                 IconButton(onClick = { showInfo = true }) {
                     Icon(Icons.Outlined.Info, contentDescription = "About", tint = InkText)
                 }
@@ -125,16 +148,161 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
         AlertDialog(
             onDismissRequest = { showInfo = false },
             confirmButton = { TextButton(onClick = { showInfo = false }) { Text("Got it") } },
-            dismissButton = {
-                TextButton(onClick = {
-                    repository.deleteAll()
-                    refreshTick++
-                    showInfo = false
-                }) { Text("Reset all photos") }
-            },
-            title = { Text("90 day transformation") },
-            text = { Text("Tap any day to snap a photo. Once captured, it turns into a little sticker on the grid so you can watch your progress build up, day by day. Switch to Calendar to see your $TOTAL_DAYS days laid out across real months.") },
+            title = { Text("$goalDays day transformation") },
+            text = { Text("Tap any day to snap a photo. Once captured, it turns into a little sticker on the grid so you can watch your progress build up, day by day. Switch to Calendar to see your days laid out across real months. Use Settings to start over with a different goal length.") },
         )
+    }
+
+    if (showSettings) {
+        SettingsSheet(
+            startDate = repository.startDate(),
+            goalDays = goalDays,
+            onStartOverClick = {
+                showSettings = false
+                showStartOver = true
+            },
+            onDismiss = { showSettings = false },
+        )
+    }
+
+    if (showStartOver) {
+        StartOverSheet(
+            currentGoal = goalDays,
+            onConfirm = { newGoal ->
+                repository.startOver(newGoal)
+                refreshTick++
+                showStartOver = false
+            },
+            onDismiss = { showStartOver = false },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsSheet(
+    startDate: LocalDate,
+    goalDays: Int,
+    onStartOverClick: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = "Settings",
+                color = InkText,
+                fontFamily = IBMPlexSans,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+            )
+            Spacer(Modifier.height(24.dp))
+            SettingsRow(
+                label = "Start date",
+                value = startDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())),
+            )
+            Spacer(Modifier.height(20.dp))
+            SettingsRow(label = "Transformation goal", value = "$goalDays days")
+            Spacer(Modifier.height(24.dp))
+            OutlinedButton(
+                onClick = onStartOverClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, InkText),
+            ) {
+                Text(text = "Start over", color = InkText, fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsRow(label: String, value: String) {
+    Column {
+        Text(text = label, color = InkFaded, fontFamily = IBMPlexSans, fontSize = 13.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(text = value, color = InkText, fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StartOverSheet(
+    currentGoal: Int,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var selectedGoal by remember(currentGoal) { mutableStateOf(currentGoal) }
+
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Start over transformation",
+                    color = InkText,
+                    fontFamily = IBMPlexSans,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Outlined.Close, contentDescription = "Close", tint = InkText)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "This resets your transformation journey and resets all progress and starts from zero",
+                color = InkFaded,
+                fontFamily = IBMPlexSans,
+                fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(24.dp))
+            Text(text = "Pick transformation goal", color = InkFaded, fontFamily = IBMPlexSans, fontSize = 13.sp)
+            Spacer(Modifier.height(4.dp))
+            GOAL_DAY_OPTIONS.forEach { option ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { selectedGoal = option }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RadioButton(
+                        selected = selectedGoal == option,
+                        onClick = { selectedGoal = option },
+                        colors = RadioButtonDefaults.colors(selectedColor = Color.Black, unselectedColor = ChipBorder),
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(text = "$option days", color = InkText, fontFamily = IBMPlexSans, fontSize = 15.sp)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = { onConfirm(selectedGoal) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
+            ) {
+                Text(text = "Start over", fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+            }
+        }
     }
 }
 

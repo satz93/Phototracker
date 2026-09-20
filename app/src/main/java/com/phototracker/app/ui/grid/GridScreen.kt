@@ -11,17 +11,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.phototracker.app.data.PhotoRepository
-import com.phototracker.app.data.TOTAL_DAYS
 import com.phototracker.app.ui.components.DayCell
 
-/** The "Days" tab: all 90 tracker days in a flat 7-column grid. */
+/** The "Days" tab: every tracker day in a flat 7-column grid. */
 @Composable
 fun DaysGridContent(
     repository: PhotoRepository,
     refreshTick: Int,
     onDayClick: (Int) -> Unit,
 ) {
-    val rows = remember(refreshTick) { (1..TOTAL_DAYS).chunked(7) }
+    val rows = remember(refreshTick) { (1..repository.goalDays()).chunked(7) }
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),

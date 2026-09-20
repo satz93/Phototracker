@@ -14,21 +14,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.phototracker.app.data.PhotoRepository
-import com.phototracker.app.data.TOTAL_DAYS
 import com.phototracker.app.ui.components.BlankCell
 import com.phototracker.app.ui.components.DayCell
 import com.phototracker.app.ui.theme.IBMPlexMono
 import com.phototracker.app.ui.theme.InkText
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
+private data class CalendarDay(val trackerDay: Int, val date: LocalDate)
+
 private sealed interface CalendarRowItem {
     data class MonthLabel(val yearMonth: YearMonth) : CalendarRowItem
-    data class WeekRow(val cells: List<Int?>) : CalendarRowItem
+    data class WeekRow(val cells: List<CalendarDay?>) : CalendarRowItem
 }
 
-/** The "Calendar" tab: the 90 tracker days laid out across real weekday-aligned months. */
+/** The "Calendar" tab: the tracked days laid out across real weekday-aligned months. */
 @Composable
 fun CalendarContent(
     repository: PhotoRepository,
@@ -36,6 +38,7 @@ fun CalendarContent(
     onDayClick: (Int) -> Unit,
 ) {
     val rowItems = remember(refreshTick) { buildCalendarRows(repository) }
+    val today = remember(refreshTick) { LocalDate.now() }
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -59,13 +62,15 @@ fun CalendarContent(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        item.cells.forEach { day ->
-                            if (day != null) {
+                        item.cells.forEach { cell ->
+                            if (cell != null) {
                                 DayCell(
-                                    day = day,
-                                    hasPhoto = repository.hasPhoto(day),
-                                    photoFile = repository.photoFile(day),
-                                    onClick = { onDayClick(day) },
+                                    day = cell.trackerDay,
+                                    label = cell.date.dayOfMonth,
+                                    hasPhoto = repository.hasPhoto(cell.trackerDay),
+                                    photoFile = repository.photoFile(cell.trackerDay),
+                                    isToday = cell.date == today,
+                                    onClick = { onDayClick(cell.trackerDay) },
                                 )
                             } else {
                                 BlankCell()
@@ -78,10 +83,10 @@ fun CalendarContent(
     }
 }
 
-/** Sunday-first weekday-aligned month grids spanning the tracker's start date through day 90. */
+/** Sunday-first weekday-aligned month grids spanning the tracker's start date through its last day. */
 private fun buildCalendarRows(repository: PhotoRepository): List<CalendarRowItem> {
     val startMonth = YearMonth.from(repository.startDate())
-    val endMonth = YearMonth.from(repository.dateForDay(TOTAL_DAYS))
+    val endMonth = YearMonth.from(repository.dateForDay(repository.goalDays()))
 
     val items = mutableListOf<CalendarRowItem>()
     var month = startMonth
@@ -91,10 +96,12 @@ private fun buildCalendarRows(repository: PhotoRepository): List<CalendarRowItem
         val firstOfMonth = month.atDay(1)
         val leadingBlanks = firstOfMonth.dayOfWeek.value % 7 // Sunday-first week
 
-        val cells = mutableListOf<Int?>()
+        val cells = mutableListOf<CalendarDay?>()
         repeat(leadingBlanks) { cells += null }
         for (dayOfMonth in 1..month.lengthOfMonth()) {
-            cells += repository.dayForDate(month.atDay(dayOfMonth))
+            val date = month.atDay(dayOfMonth)
+            val trackerDay = repository.dayForDate(date)
+            cells += if (trackerDay != null) CalendarDay(trackerDay, date) else null
         }
         while (cells.size % 7 != 0) cells += null
 

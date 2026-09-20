@@ -9,10 +9,12 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
-const val TOTAL_DAYS = 90
+const val DEFAULT_GOAL_DAYS = 90
+val GOAL_DAY_OPTIONS = listOf(90, 75, 60)
 
 private const val PREFS_NAME = "phototracker_prefs"
 private const val KEY_START_DATE_EPOCH_DAY = "start_date_epoch_day"
+private const val KEY_GOAL_DAYS = "goal_days"
 
 class PhotoRepository(context: Context) {
     private val appContext = context.applicationContext
@@ -35,12 +37,20 @@ class PhotoRepository(context: Context) {
         )
     }
 
-    fun deleteAll() {
+    /** Length of the current transformation, in days (90/75/60). */
+    fun goalDays(): Int = prefs.getInt(KEY_GOAL_DAYS, DEFAULT_GOAL_DAYS)
+
+    /** Deletes every captured photo and restarts the tracker from today with a new goal length. */
+    fun startOver(goalDays: Int) {
         photosDir.listFiles()?.forEach { it.delete() }
-        prefs.edit().remove(KEY_START_DATE_EPOCH_DAY).apply()
+        val today = Instant.ofEpochMilli(System.currentTimeMillis()).atZone(ZoneId.systemDefault()).toLocalDate()
+        prefs.edit()
+            .putLong(KEY_START_DATE_EPOCH_DAY, today.toEpochDay())
+            .putInt(KEY_GOAL_DAYS, goalDays)
+            .apply()
     }
 
-    fun completedCount(): Int = (1..TOTAL_DAYS).count { hasPhoto(it) }
+    fun completedCount(): Int = (1..goalDays()).count { hasPhoto(it) }
 
     /** Day 1 of the tracker. Defaults to today, fixed the first time it's read. */
     fun startDate(): LocalDate {
@@ -53,9 +63,9 @@ class PhotoRepository(context: Context) {
 
     fun dateForDay(day: Int): LocalDate = startDate().plusDays((day - 1).toLong())
 
-    /** Which tracker day (1..TOTAL_DAYS) a calendar date is, or null if outside the tracked window. */
+    /** Which tracker day (1..goalDays()) a calendar date is, or null if outside the tracked window. */
     fun dayForDate(date: LocalDate): Int? {
         val diff = ChronoUnit.DAYS.between(startDate(), date).toInt() + 1
-        return diff.takeIf { it in 1..TOTAL_DAYS }
+        return diff.takeIf { it in 1..goalDays() }
     }
 }
