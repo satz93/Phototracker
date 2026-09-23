@@ -28,6 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -48,18 +49,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.phototracker.app.data.GOAL_DAY_OPTIONS
 import com.phototracker.app.data.PhotoRepository
 import com.phototracker.app.ui.calendar.CalendarContent
 import com.phototracker.app.ui.grid.DaysGridContent
 import com.phototracker.app.ui.theme.ChipBorder
-import com.phototracker.app.ui.theme.IBMPlexMono
-import com.phototracker.app.ui.theme.IBMPlexSans
 import com.phototracker.app.ui.theme.InkFaded
 import com.phototracker.app.ui.theme.InkText
 import com.phototracker.app.ui.theme.Parchment
@@ -115,16 +111,12 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
                     Text(
                         text = "Hi ${userName.ifBlank { "there" }} 👋",
                         color = InkText,
-                        fontFamily = IBMPlexSans,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 20.sp,
+                        style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
                         text = greeting,
                         color = InkFaded,
-                        fontFamily = IBMPlexSans,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 IconButton(onClick = { showSettings = true }, modifier = Modifier.size(32.dp)) {
@@ -229,16 +221,13 @@ private fun InfoSheet(
             Text(
                 text = "$goalDays day transformation",
                 color = InkText,
-                fontFamily = IBMPlexSans,
-                fontWeight = FontWeight.Medium,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Tap any day to snap a photo. Once captured, it turns into a little sticker on the grid so you can watch your progress build up, day by day. Switch to Calendar to see your days laid out across real months. Use Settings to start over with a different goal length.",
                 color = InkFaded,
-                fontFamily = IBMPlexSans,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(24.dp))
             Button(
@@ -249,7 +238,7 @@ private fun InfoSheet(
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
             ) {
-                Text(text = "Got it", fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                Text(text = "Got it", style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -275,18 +264,16 @@ private fun SettingsSheet(
             Text(
                 text = "Settings",
                 color = InkText,
-                fontFamily = IBMPlexSans,
-                fontWeight = FontWeight.Medium,
-                fontSize = 20.sp,
+                style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(24.dp))
             OutlinedTextField(
                 value = userName,
                 onValueChange = onUserNameChange,
-                label = { Text(text = "Your name", fontFamily = IBMPlexSans, fontSize = 13.sp) },
+                label = { Text(text = "Your name", style = MaterialTheme.typography.bodySmall) },
                 singleLine = true,
                 shape = RoundedCornerShape(10.dp),
-                textStyle = TextStyle(fontFamily = IBMPlexSans, fontSize = 16.sp, color = InkText),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkText),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = InkText,
                     unfocusedBorderColor = ChipBorder,
@@ -312,7 +299,7 @@ private fun SettingsSheet(
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.dp, InkText),
             ) {
-                Text(text = "Start over", color = InkText, fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                Text(text = "Start over", color = InkText, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -321,9 +308,9 @@ private fun SettingsSheet(
 @Composable
 private fun SettingsRow(label: String, value: String) {
     Column {
-        Text(text = label, color = InkFaded, fontFamily = IBMPlexSans, fontSize = 13.sp)
+        Text(text = label, color = InkFaded, style = MaterialTheme.typography.bodySmall)
         Spacer(Modifier.height(4.dp))
-        Text(text = value, color = InkText, fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+        Text(text = value, color = InkText, style = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -347,19 +334,16 @@ private fun StartOverSheet(
             Text(
                 text = "Start over transformation",
                 color = InkText,
-                fontFamily = IBMPlexSans,
-                fontWeight = FontWeight.Medium,
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "This resets your transformation journey and resets all progress and starts from zero",
                 color = InkFaded,
-                fontFamily = IBMPlexSans,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(24.dp))
-            Text(text = "Pick transformation goal", color = InkFaded, fontFamily = IBMPlexSans, fontSize = 13.sp)
+            Text(text = "Pick transformation goal", color = InkFaded, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(4.dp))
             GOAL_DAY_OPTIONS.forEach { option ->
                 Row(
@@ -375,7 +359,7 @@ private fun StartOverSheet(
                         colors = RadioButtonDefaults.colors(selectedColor = Color.Black, unselectedColor = ChipBorder),
                     )
                     Spacer(Modifier.width(12.dp))
-                    Text(text = "$option days", color = InkText, fontFamily = IBMPlexSans, fontSize = 15.sp)
+                    Text(text = "$option days", color = InkText, style = MaterialTheme.typography.labelLarge)
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -391,7 +375,7 @@ private fun StartOverSheet(
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, InkText),
                 ) {
-                    Text(text = "Cancel", color = InkText, fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                    Text(text = "Cancel", color = InkText, style = MaterialTheme.typography.labelLarge)
                 }
                 Button(
                     onClick = { onConfirm(selectedGoal) },
@@ -401,7 +385,7 @@ private fun StartOverSheet(
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
                 ) {
-                    Text(text = "Start over", fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                    Text(text = "Start over", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -454,7 +438,7 @@ private fun ToggleSegment(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(18.dp))
-            Text(text = label, color = Color.White, fontFamily = IBMPlexMono, fontSize = 13.sp)
+            Text(text = label, color = Color.White, style = MaterialTheme.typography.labelMedium)
         }
     } else {
         Box(

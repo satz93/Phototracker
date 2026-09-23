@@ -7,18 +7,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.phototracker.app.data.PhotoRepository
 import com.phototracker.app.ui.components.BlankCell
 import com.phototracker.app.ui.components.DayCell
 import com.phototracker.app.ui.components.DisabledDayCell
-import com.phototracker.app.ui.theme.IBMPlexMono
 import com.phototracker.app.ui.theme.InkText
 import java.time.LocalDate
 import java.time.YearMonth
@@ -56,9 +54,7 @@ fun CalendarContent(
                     Text(
                         text = item.yearMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault()),
                         color = InkText,
-                        fontFamily = IBMPlexMono,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
