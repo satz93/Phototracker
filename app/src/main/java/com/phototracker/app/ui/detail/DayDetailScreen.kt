@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
@@ -92,8 +93,9 @@ fun DayDetailScreen(day: Int, onBack: () -> Unit) {
         IconButton(
             onClick = onBack,
             modifier = Modifier
-                .padding(12.dp)
-                .align(Alignment.TopStart),
+                .align(Alignment.TopStart)
+                .statusBarsPadding()
+                .padding(12.dp),
         ) {
             Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back", tint = InkText)
         }
