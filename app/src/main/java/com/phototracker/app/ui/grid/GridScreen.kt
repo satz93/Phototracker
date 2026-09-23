@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.phototracker.app.data.PhotoRepository
 import com.phototracker.app.ui.components.DayCell
+import java.time.LocalDate
 
 /** The "Days" tab: every tracker day in a flat 7-column grid. */
 @Composable
@@ -21,6 +22,7 @@ fun DaysGridContent(
     onDayClick: (Int) -> Unit,
 ) {
     val rows = remember(refreshTick) { (1..repository.goalDays()).chunked(7) }
+    val today = remember(refreshTick) { LocalDate.now() }
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -37,6 +39,7 @@ fun DaysGridContent(
                         day = day,
                         hasPhoto = repository.hasPhoto(day),
                         photoFile = repository.photoFile(day),
+                        isToday = repository.dateForDay(day) == today,
                         onClick = { onDayClick(day) },
                     )
                 }
