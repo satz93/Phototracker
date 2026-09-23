@@ -30,6 +30,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,10 +64,17 @@ import com.phototracker.app.ui.theme.InkFaded
 import com.phototracker.app.ui.theme.InkText
 import com.phototracker.app.ui.theme.Parchment
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private enum class HomeTab { Calendar, Days }
+
+private fun greetingForHour(hour: Int): String = when (hour) {
+    in 0..11 -> "Good morning"
+    in 12..16 -> "Good afternoon"
+    else -> "Good evening"
+}
 
 @Composable
 fun HomeScreen(onDayClick: (Int) -> Unit) {
@@ -75,6 +85,7 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
     var showInfo by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showStartOver by remember { mutableStateOf(false) }
+    var userName by remember { mutableStateOf(repository.userName()) }
 
     LifecycleResumeEffect(Unit) {
         refreshTick++
@@ -82,6 +93,7 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
     }
 
     val goalDays = remember(refreshTick) { repository.goalDays() }
+    val greeting = remember(refreshTick) { greetingForHour(LocalTime.now().hour) }
 
     Box(
         modifier = Modifier
@@ -99,14 +111,22 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = "$goalDays day transformation",
-                    color = InkText,
-                    fontFamily = IBMPlexSans,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp,
-                    modifier = Modifier.weight(1f),
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Hi ${userName.ifBlank { "there" }} 👋",
+                        color = InkText,
+                        fontFamily = IBMPlexSans,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 20.sp,
+                    )
+                    Text(
+                        text = greeting,
+                        color = InkFaded,
+                        fontFamily = IBMPlexSans,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                    )
+                }
                 IconButton(onClick = { showSettings = true }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.Settings,
@@ -165,6 +185,11 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
 
     if (showSettings) {
         SettingsSheet(
+            userName = userName,
+            onUserNameChange = { newName ->
+                userName = newName
+                repository.setUserName(newName)
+            },
             startDate = repository.startDate(),
             goalDays = goalDays,
             onStartOverClick = {
@@ -233,6 +258,8 @@ private fun InfoSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsSheet(
+    userName: String,
+    onUserNameChange: (String) -> Unit,
     startDate: LocalDate,
     goalDays: Int,
     onStartOverClick: () -> Unit,
@@ -253,6 +280,23 @@ private fun SettingsSheet(
                 fontSize = 20.sp,
             )
             Spacer(Modifier.height(24.dp))
+            OutlinedTextField(
+                value = userName,
+                onValueChange = onUserNameChange,
+                label = { Text(text = "Your name", fontFamily = IBMPlexSans, fontSize = 13.sp) },
+                singleLine = true,
+                shape = RoundedCornerShape(10.dp),
+                textStyle = TextStyle(fontFamily = IBMPlexSans, fontSize = 16.sp, color = InkText),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = InkText,
+                    unfocusedBorderColor = ChipBorder,
+                    focusedLabelColor = InkText,
+                    unfocusedLabelColor = InkFaded,
+                    cursorColor = InkText,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Spacer(Modifier.height(20.dp))
             SettingsRow(
                 label = "Start date",
                 value = startDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())),
