@@ -98,8 +98,7 @@ fun DisabledDayCell(label: Int, modifier: Modifier = Modifier) {
         modifier = modifier
             .size(42.dp)
             .clip(CellShape)
-            .background(Color.White)
-            .border(BorderStroke(1.dp, ChipBorder), CellShape),
+            .background(Color.White.copy(alpha = 0.5f)),
         contentAlignment = Alignment.Center,
     ) {
         Text(
