@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +31,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -145,11 +143,9 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
     }
 
     if (showInfo) {
-        AlertDialog(
-            onDismissRequest = { showInfo = false },
-            confirmButton = { TextButton(onClick = { showInfo = false }) { Text("Got it") } },
-            title = { Text("$goalDays day transformation") },
-            text = { Text("Tap any day to snap a photo. Once captured, it turns into a little sticker on the grid so you can watch your progress build up, day by day. Switch to Calendar to see your days laid out across real months. Use Settings to start over with a different goal length.") },
+        InfoSheet(
+            goalDays = goalDays,
+            onDismiss = { showInfo = false },
         )
     }
 
@@ -175,6 +171,48 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
             },
             onDismiss = { showStartOver = false },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun InfoSheet(
+    goalDays: Int,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Color.White) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = "$goalDays day transformation",
+                color = InkText,
+                fontFamily = IBMPlexSans,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "Tap any day to snap a photo. Once captured, it turns into a little sticker on the grid so you can watch your progress build up, day by day. Switch to Calendar to see your days laid out across real months. Use Settings to start over with a different goal length.",
+                color = InkFaded,
+                fontFamily = IBMPlexSans,
+                fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black, contentColor = Color.White),
+            ) {
+                Text(text = "Got it", fontFamily = IBMPlexSans, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+            }
+        }
     }
 }
 
