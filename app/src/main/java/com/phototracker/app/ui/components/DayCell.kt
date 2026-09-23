@@ -25,6 +25,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.phototracker.app.ui.theme.ChipBorder
 import com.phototracker.app.ui.theme.IBMPlexMono
+import com.phototracker.app.ui.theme.InkFaded
 import com.phototracker.app.ui.theme.InkText
 import java.io.File
 
@@ -88,4 +89,25 @@ fun DayCell(
 @Composable
 fun BlankCell(modifier: Modifier = Modifier) {
     Box(modifier = modifier.size(42.dp))
+}
+
+/** A real calendar date outside the tracked window (e.g. before the start date) — shown, not clickable. */
+@Composable
+fun DisabledDayCell(label: Int, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(42.dp)
+            .clip(CellShape)
+            .background(Color.White)
+            .border(BorderStroke(1.dp, ChipBorder), CellShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label.toString(),
+            color = InkFaded,
+            fontFamily = IBMPlexMono,
+            fontWeight = FontWeight.Normal,
+            fontSize = 13.sp,
+        )
+    }
 }

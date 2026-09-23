@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.phototracker.app.data.PhotoRepository
 import com.phototracker.app.ui.components.BlankCell
 import com.phototracker.app.ui.components.DayCell
+import com.phototracker.app.ui.components.DisabledDayCell
 import com.phototracker.app.ui.theme.IBMPlexMono
 import com.phototracker.app.ui.theme.InkText
 import java.time.LocalDate
@@ -23,11 +24,14 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.util.Locale
 
-private data class CalendarDay(val trackerDay: Int, val date: LocalDate)
+private sealed interface CalendarCell {
+    data class Active(val trackerDay: Int, val date: LocalDate) : CalendarCell
+    data class Disabled(val date: LocalDate) : CalendarCell
+}
 
 private sealed interface CalendarRowItem {
     data class MonthLabel(val yearMonth: YearMonth) : CalendarRowItem
-    data class WeekRow(val cells: List<CalendarDay?>) : CalendarRowItem
+    data class WeekRow(val cells: List<CalendarCell?>) : CalendarRowItem
 }
 
 /** The "Calendar" tab: the tracked days laid out across real weekday-aligned months. */
@@ -63,8 +67,8 @@ fun CalendarContent(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         item.cells.forEach { cell ->
-                            if (cell != null) {
-                                DayCell(
+                            when (cell) {
+                                is CalendarCell.Active -> DayCell(
                                     day = cell.trackerDay,
                                     label = cell.date.dayOfMonth,
                                     hasPhoto = repository.hasPhoto(cell.trackerDay),
@@ -72,8 +76,10 @@ fun CalendarContent(
                                     isToday = cell.date == today,
                                     onClick = { onDayClick(cell.trackerDay) },
                                 )
-                            } else {
-                                BlankCell()
+
+                                is CalendarCell.Disabled -> DisabledDayCell(label = cell.date.dayOfMonth)
+
+                                null -> BlankCell()
                             }
                         }
                     }
@@ -85,7 +91,8 @@ fun CalendarContent(
 
 /** Sunday-first weekday-aligned month grids spanning the tracker's start date through its last day. */
 private fun buildCalendarRows(repository: PhotoRepository): List<CalendarRowItem> {
-    val startMonth = YearMonth.from(repository.startDate())
+    val startDate = repository.startDate()
+    val startMonth = YearMonth.from(startDate)
     val endMonth = YearMonth.from(repository.dateForDay(repository.goalDays()))
 
     val items = mutableListOf<CalendarRowItem>()
@@ -96,12 +103,16 @@ private fun buildCalendarRows(repository: PhotoRepository): List<CalendarRowItem
         val firstOfMonth = month.atDay(1)
         val leadingBlanks = firstOfMonth.dayOfWeek.value % 7 // Sunday-first week
 
-        val cells = mutableListOf<CalendarDay?>()
+        val cells = mutableListOf<CalendarCell?>()
         repeat(leadingBlanks) { cells += null }
         for (dayOfMonth in 1..month.lengthOfMonth()) {
             val date = month.atDay(dayOfMonth)
             val trackerDay = repository.dayForDate(date)
-            cells += if (trackerDay != null) CalendarDay(trackerDay, date) else null
+            cells += when {
+                trackerDay != null -> CalendarCell.Active(trackerDay, date)
+                date.isBefore(startDate) -> CalendarCell.Disabled(date)
+                else -> null
+            }
         }
         while (cells.size % 7 != 0) cells += null
 
