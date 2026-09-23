@@ -15,7 +15,6 @@ val GOAL_DAY_OPTIONS = listOf(90, 75, 60)
 private const val PREFS_NAME = "phototracker_prefs"
 private const val KEY_START_DATE_EPOCH_DAY = "start_date_epoch_day"
 private const val KEY_GOAL_DAYS = "goal_days"
-private const val KEY_USER_NAME = "user_name"
 
 class PhotoRepository(context: Context) {
     private val appContext = context.applicationContext
@@ -40,12 +39,6 @@ class PhotoRepository(context: Context) {
 
     /** Length of the current transformation, in days (90/75/60). */
     fun goalDays(): Int = prefs.getInt(KEY_GOAL_DAYS, DEFAULT_GOAL_DAYS)
-
-    fun userName(): String = prefs.getString(KEY_USER_NAME, "") ?: ""
-
-    fun setUserName(name: String) {
-        prefs.edit().putString(KEY_USER_NAME, name).apply()
-    }
 
     /** Deletes every captured photo and restarts the tracker from today with a new goal length. */
     fun startOver(goalDays: Int) {

@@ -31,8 +31,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
@@ -81,7 +79,6 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
     var showInfo by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showStartOver by remember { mutableStateOf(false) }
-    var userName by remember { mutableStateOf(repository.userName()) }
 
     LifecycleResumeEffect(Unit) {
         refreshTick++
@@ -109,7 +106,7 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Hi ${userName.ifBlank { "there" }} 👋",
+                        text = "Hi there 👋",
                         color = InkText,
                         style = MaterialTheme.typography.titleLarge,
                     )
@@ -177,11 +174,6 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
 
     if (showSettings) {
         SettingsSheet(
-            userName = userName,
-            onUserNameChange = { newName ->
-                userName = newName
-                repository.setUserName(newName)
-            },
             startDate = repository.startDate(),
             goalDays = goalDays,
             onStartOverClick = {
@@ -247,8 +239,6 @@ private fun InfoSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsSheet(
-    userName: String,
-    onUserNameChange: (String) -> Unit,
     startDate: LocalDate,
     goalDays: Int,
     onStartOverClick: () -> Unit,
@@ -267,23 +257,6 @@ private fun SettingsSheet(
                 style = MaterialTheme.typography.titleLarge,
             )
             Spacer(Modifier.height(24.dp))
-            OutlinedTextField(
-                value = userName,
-                onValueChange = onUserNameChange,
-                label = { Text(text = "Your name", style = MaterialTheme.typography.bodySmall) },
-                singleLine = true,
-                shape = RoundedCornerShape(10.dp),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = InkText),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = InkText,
-                    unfocusedBorderColor = ChipBorder,
-                    focusedLabelColor = InkText,
-                    unfocusedLabelColor = InkFaded,
-                    cursorColor = InkText,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(20.dp))
             SettingsRow(
                 label = "Start date",
                 value = startDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())),
