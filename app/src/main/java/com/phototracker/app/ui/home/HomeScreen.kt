@@ -104,11 +104,21 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
                     fontSize = 18.sp,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { showSettings = true }) {
-                    Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = InkText)
+                IconButton(onClick = { showSettings = true }, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Outlined.Settings,
+                        contentDescription = "Settings",
+                        tint = InkText,
+                        modifier = Modifier.size(20.dp),
+                    )
                 }
-                IconButton(onClick = { showInfo = true }) {
-                    Icon(Icons.Outlined.Info, contentDescription = "About", tint = InkText)
+                IconButton(onClick = { showInfo = true }, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Outlined.Info,
+                        contentDescription = "About",
+                        tint = InkText,
+                        modifier = Modifier.size(20.dp),
+                    )
                 }
             }
 
