@@ -124,6 +124,7 @@ fun HomeScreen(onDayClick: (Int) -> Unit) {
                         modifier = Modifier.size(20.dp),
                     )
                 }
+                Spacer(Modifier.width(4.dp))
                 IconButton(onClick = { showInfo = true }, modifier = Modifier.size(32.dp)) {
                     Icon(
                         Icons.Outlined.Info,
