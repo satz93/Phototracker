@@ -60,7 +60,7 @@ fun CalendarContent(
                 is CalendarRowItem.WeekRow -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         item.cells.forEach { cell ->
                             if (cell != null) {

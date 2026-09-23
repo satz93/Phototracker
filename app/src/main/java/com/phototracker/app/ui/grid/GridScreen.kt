@@ -30,7 +30,7 @@ fun DaysGridContent(
         items(rows) { row ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 row.forEach { day ->
                     DayCell(
